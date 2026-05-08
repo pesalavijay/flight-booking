@@ -31,14 +31,14 @@ class Seat(models.Model):
         ('business', 'Business'),
         ('economy', 'Economy'),
     ]
-    flight = models.ForeignKey(Flight, on_delete=models.CASCADE, related_name='Seats')
+    flight = models.ForeignKey(Flight, on_delete=models.CASCADE, related_name='seats')
     seat_number = models.CharField(max_length=4)
     seat_class = models.CharField(max_length=20, choices=CLASS_CHOICES)
     is_window = models.BooleanField(default=False)
     is_aisle = models.BooleanField(default=False)
     is_exit_row = models.BooleanField(default=False)
     base_price = models.DecimalField(max_digits=10, decimal_places=2)
-    is_bookend = models.BooleanField(default=False)
+    is_booked = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('flight' , 'seat_number')
