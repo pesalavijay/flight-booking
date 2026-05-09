@@ -15,8 +15,8 @@ class Booking(models.Model):
     pnr = models.CharField(max_length=10, unique=True, default=generate_pnr)
     status = models.CharField(max_length=30, choices=Status_Choices)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    passanger_name = models.CharField(max_length=150)
-    passanger_age = models.PositiveIntegerField()
+    passenger_name = models.CharField(max_length=150)
+    passenger_age = models.PositiveIntegerField()
     booked_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -27,7 +27,7 @@ class Booking(models.Model):
 class Payment(models.Model):
     Status_Choices = [('success', 'Success'), ('failed','Failed'), ('pending','Pending'), ('refunded','Refunded')]
 
-    booking = models.OneToOneField(Booking, on_delete=models.CASCADE, related_name='payemnts')
+    booking = models.OneToOneField(Booking, on_delete=models.CASCADE, related_name='payment')
     razorpay_order_id   = models.CharField(max_length=100, blank=True)
     razorpay_payment_id = models.CharField(max_length=100, blank=True)
     status              = models.CharField(max_length=20, choices=Status_Choices, default='pending')
