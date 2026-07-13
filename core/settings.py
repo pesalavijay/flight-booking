@@ -141,7 +141,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 # i read on the django docs that we need to whitelist the frontend domain here so it doesn't block it
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173", # we keep this for local testing
-    "https://flight-booking-4ojb-git-main-vijaypesala-s-projects.vercel.app/", # paste your real vercel link here (make sure there is no / at the very end!)
+    "https://flight-booking-4ojb-git-main-vijaypesala-s-projects.vercel.app", # paste your real vercel link here (make sure there is no / at the very end!)
 ]
 
 # Redis and Celery Settings
