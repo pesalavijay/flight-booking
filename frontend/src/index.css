@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-pastelBlue: #A2D4E8;
+  --color-creame: #FAEADE;
+  --color-persimmon: #FCBA98;
+  --color-julianna: #768EEB;
+  --color-addison: #C4ACF7;
+  --color-compassion: #F9DDF3;
+}

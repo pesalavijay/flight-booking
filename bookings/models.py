@@ -3,7 +3,6 @@ from django.conf import settings
 from flights.models import Flight, Seat
 import uuid
 
-# Create your models here.
 def generate_pnr():
     return uuid.uuid4().hex[:8].upper()
 
