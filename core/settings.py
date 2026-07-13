@@ -16,10 +16,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / '.env')
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fallback-key-for-dev')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
+# ==============================================================================
+# FIX 1: FORCE DEBUG MODE TO TRUE
+# This ensures Render doesn't hide errors behind a blank 500 screen!
+# ==============================================================================
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -138,10 +141,15 @@ SIMPLE_JWT = {
 
 # CORS Settings (Allows your React Vercel app to talk to this backend)
 CORS_ALLOW_ALL_ORIGINS = True
-# i read on the django docs that we need to whitelist the frontend domain here so it doesn't block it
+
+# ==============================================================================
+# FIX 2: VERCEL LINKS ADDED
+# We keep both the preview link and the main live link so Django never blocks them
+# ==============================================================================
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173", # we keep this for local testing
-    "https://flight-booking-4ojb-git-main-vijaypesala-s-projects.vercel.app", # paste your real vercel link here (make sure there is no / at the very end!)
+    "https://flight-booking-4ojb-git-main-vijaypesala-s-projects.vercel.app", 
+    "https://flight-booking-4ojb.vercel.app" 
 ]
 
 # Redis and Celery Settings
@@ -150,10 +158,13 @@ CELERY_BROKER_URL = REDIS_URL
 CELERY_RESULT_BACKEND = REDIS_URL
 CELERY_TIMEZONE = 'Asia/Kolkata'
 
-# Caching
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': REDIS_URL,
-    }
-}
+# ==============================================================================
+# FIX 3: REDIS CACHE DISABLED
+# Render free tier doesn't have Redis. This was crashing the server with a 500 error!
+# ==============================================================================
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+#         'LOCATION': REDIS_URL,
+#     }
+# }
