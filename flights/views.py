@@ -53,8 +53,6 @@ class FlightSearchView(APIView):
 
 class SeatMapView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
-    class SeatMapView(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
     def get(self, request, flight_id):
         try:
             flight = Flight.objects.get(id=flight_id, is_active=True)
