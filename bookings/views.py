@@ -158,8 +158,19 @@ class CancelBookingView(APIView):
             booking = Booking.objects.get(id=booking_id, user=request.user, status='confirmed')
         except Booking.DoesNotExist:
             return Response({'error': 'Booking not found or already cancelled'}, status=status.HTTP_404_NOT_FOUND )
+            
         refund_percentage = calculate_refund_percentage(booking.flight.departure_time)
         refund_amount = Decimal(booking.total_amount) * Decimal(refund_percentage) / Decimal(100)
+
+        payment = Payment.objects.filter(booking=booking, status='success').first()
+
+        if refund_amount > 0 and payment and payment.razorpay_payment_id:
+            try:
+                razorpay_client.payment.refund(payment.razorpay_payment_id, {
+                    "amount": int(refund_amount * 100)
+                })
+            except Exception as e:
+                return Response({'error': f'Gateway failed to process refund: {str(e)}'}, status=status.HTTP_502_BAD_GATEWAY)
 
         with transaction.atomic():
             cancellation = Cancellation.objects.create(
@@ -167,7 +178,7 @@ class CancelBookingView(APIView):
                 reason = request.data.get('reason', ''),
                 refund_percentage = refund_percentage,
                 refund_amount = refund_amount,
-                refund_status = 'pending',
+                refund_status = 'completed' if refund_amount > 0 else 'not_applicable',
             )
 
             booking.status = 'cancelled'
@@ -178,8 +189,8 @@ class CancelBookingView(APIView):
             seat.save()
 
         return Response({
-            'message': 'Booking cancelled successfully',
+            'message': 'Booking cancelled and refund initiated successfully',
             'cancellation_id': cancellation.id,
             'refund_amount': str(refund_amount),
-            'refund_status': 'pending',
+            'refund_status': cancellation.refund_status,
         }, status=status.HTTP_200_OK)
