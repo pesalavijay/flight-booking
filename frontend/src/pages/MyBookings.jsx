@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/client';
-import { Ticket, Calendar, PlaneTakeoff, Armchair, Loader2, Plane, AlertCircle } from 'lucide-react';
+import { Ticket, Calendar, PlaneTakeoff, Loader2, Plane, AlertCircle } from 'lucide-react';
 
 export default function MyBookings() {
     const [bookings, setBookings] = useState([]);
@@ -27,7 +27,13 @@ export default function MyBookings() {
             setIsLoading(false);
         }
     };
+
     const handleCancelClick = async (bookingId) => {
+        if (!bookingId) {
+            alert("System Error: Booking ID is missing.");
+            return;
+        }
+        
         setCancelModal({ isOpen: true, bookingId });
         setRefundData(null);
         try {
@@ -35,9 +41,10 @@ export default function MyBookings() {
             setRefundData(res.data);
         } catch (err) {
             console.error("Failed to fetch refund preview", err);
-            setRefundData({ error: "Could not calculate refund. Please try again." });
+            setRefundData({ error: "Could not calculate refund. This ticket may already be processed." });
         }
     };
+
     const confirmCancellation = async () => {
         setIsProcessingCancel(true);
         try {
@@ -90,59 +97,76 @@ export default function MyBookings() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {bookings.map((booking) => (
-                            <div key={booking.id} className="bg-white rounded-3xl shadow-md overflow-hidden border border-gray-100 flex flex-col relative"> 
-                                <div className="absolute top-4 right-4 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider z-10">
-                                    Confirmed
-                                </div>
-                                <div className="p-6 bg-gradient-to-br from-pastelBlue/10 to-transparent border-b border-dashed border-gray-200">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <div className="flex items-center gap-2 text-julianna">
-                                            <PlaneTakeoff size={20} />
-                                            <span className="font-bold text-lg">{booking.flight.flight_number}</span>
-                                        </div>
+                        {bookings.map((booking) => {
+                            const flightTime = new Date(booking.flight.departure_time).getTime();
+                            const currentTime = new Date().getTime();
+                            const isPastFlight = flightTime < currentTime;
+                            const isCancelled = booking.status === 'cancelled';
+                            return (
+                                <div key={booking.id} className="bg-white rounded-3xl shadow-md overflow-hidden border border-gray-100 flex flex-col relative"> 
+                                    <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider z-10 ${isCancelled ? 'bg-red-100 text-red-700' : isPastFlight ? 'bg-gray-100 text-gray-700' : 'bg-green-100 text-green-700'}`}>
+                                        {isCancelled ? 'Cancelled' : isPastFlight ? 'Completed' : 'Confirmed'}
                                     </div>
-                                    <div className="flex items-center justify-between mt-6">
-                                        <div className="w-1/3">
-                                            <p className="text-3xl font-black text-gray-800">{booking.flight.source.substring(0, 3).toUpperCase()}</p>
-                                            <p className="text-sm text-gray-500 font-medium truncate">{booking.flight.source}</p>
-                                        </div>
-                                        <div className="w-1/3 flex flex-col items-center">
-                                            <div className="w-full h-[2px] bg-gray-200 relative">
-                                                <Plane className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-addison" size={16} />
+                                    <div className="p-6 bg-gradient-to-br from-pastelBlue/10 to-transparent border-b border-dashed border-gray-200">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <div className="flex items-center gap-2 text-julianna">
+                                                <PlaneTakeoff size={20} />
+                                                <span className="font-bold text-lg">{booking.flight.flight_number}</span>
                                             </div>
                                         </div>
-                                        <div className="w-1/3 text-right">
-                                            <p className="text-3xl font-black text-gray-800">{booking.flight.destination.substring(0, 3).toUpperCase()}</p>
-                                            <p className="text-sm text-gray-500 font-medium truncate">{booking.flight.destination}</p>
+                                        <div className="flex items-center justify-between mt-6">
+                                            <div className="w-1/3">
+                                                <p className="text-3xl font-black text-gray-800">{booking.flight.source.substring(0, 3).toUpperCase()}</p>
+                                                <p className="text-sm text-gray-500 font-medium truncate">{booking.flight.source}</p>
+                                            </div>
+                                            <div className="w-1/3 flex flex-col items-center">
+                                                <div className="w-full h-[2px] bg-gray-200 relative">
+                                                    <Plane className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-addison" size={16} />
+                                                </div>
+                                            </div>
+                                            <div className="w-1/3 text-right">
+                                                <p className="text-3xl font-black text-gray-800">{booking.flight.destination.substring(0, 3).toUpperCase()}</p>
+                                                <p className="text-sm text-gray-500 font-medium truncate">{booking.flight.destination}</p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="p-6 bg-white flex justify-between items-end">
-                                    <div className="space-y-4">
-                                        <div>
-                                            <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Passenger</p>
-                                            <p className="font-bold text-gray-800">{booking.passenger_name}</p>
-                                        </div>
-                                        <div className="flex gap-6">
+                                    <div className="p-6 bg-white flex justify-between items-end">
+                                        <div className="space-y-4">
                                             <div>
-                                                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider flex items-center gap-1"><Calendar size={12}/> Date</p>
-                                                <p className="font-bold text-gray-800">{booking.flight.departure_time.split('T')[0]}</p>
+                                                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Passenger</p>
+                                                <p className="font-bold text-gray-800">{booking.passenger_name}</p>
                                             </div>
+                                            <div className="flex gap-6">
+                                                <div>
+                                                    <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider flex items-center gap-1"><Calendar size={12}/> Date</p>
+                                                    <p className="font-bold text-gray-800">{booking.flight.departure_time.split('T')[0]}</p>
+                                                </div>
+                                            </div>
+                                        </div>                                  
+                                        <div className="flex flex-col items-end gap-3">
+                                            <div className="bg-compassion/40 py-2 px-4 rounded-xl border border-addison/20 text-center min-w-[80px]">
+                                                <p className="text-xs text-gray-500 font-semibold uppercase">Seat</p>
+                                                <p className="text-lg font-black text-gray-900">{booking.seat.seat_number}</p>
+                                            </div>
+                                            
+                                            {/* Dynamic Conditional Rendering */}
+                                            {isCancelled ? (
+                                                <div className="text-right">
+                                                    <span className="text-red-500 font-bold text-sm">Cancelled</span>
+                                                    {booking.refund_amount && <p className="text-xs text-gray-500 mt-1"> Refunded: ₹{booking.refund_amount} </p>}
+                                                </div>                              
+                                                ) : isPastFlight ? (
+                                                    <span className="text-green-600 font-bold text-sm"> Finished Travelling </span>
+                                                ) : (
+                                                <button onClick={() => handleCancelClick(booking.id)} className="text-xs font-bold text-red-500 hover:text-red-700 hover:underline transition-colors">
+                                                    Cancel Ticket
+                                                </button>
+                                            )}
                                         </div>
-                                    </div>                                   
-                                    <div className="flex flex-col items-end gap-3">
-                                        <div className="bg-compassion/40 py-2 px-4 rounded-xl border border-addison/20 text-center min-w-[80px]">
-                                            <p className="text-xs text-gray-500 font-semibold uppercase">Seat</p>
-                                            <p className="text-lg font-black text-gray-900">{booking.seat.seat_number}</p>
-                                        </div>
-                                        <button onClick={() => handleCancelClick(booking.id)} className="text-xs font-bold text-red-500 hover:text-red-700 hover:underline transition-colors">
-                                            Cancel Ticket
-                                        </button>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </div>
@@ -160,7 +184,7 @@ export default function MyBookings() {
                             </div>
                         ) : refundData.error ? (
                             <div className="py-4">
-                                <p className="text-red-500">{refundData.error}</p>
+                                <p className="text-red-500 font-medium">{refundData.error}</p>
                             </div>
                         ) : (
                             <div className="py-4 space-y-4">
