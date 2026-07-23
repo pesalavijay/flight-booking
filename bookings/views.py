@@ -11,6 +11,9 @@ from razorpay.errors import SignatureVerificationError
 from flights.models import Flight, Seat  
 from .models import Booking, Payment, Cancellation
 from .serializers import BookingSerializer
+from datetime import timedelta
+from django.utils import timezone
+from rest_framework import generics
 
 razorpay_client = razorpay.Client(
     auth=(os.getenv('RAZORPAY_KEY_ID'), os.getenv('RAZORPAY_KEY_SECRET'))
@@ -36,6 +39,9 @@ class CreateBookingView(APIView):
             flight = Flight.objects.get(id=flight_id)
         except Flight.DoesNotExist:
             return Response({'error': 'Flight not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if flight.departure_time < timezone.now():
+            return Response({'error': 'Cannot book a flight that has already departed.'}, status=status.HTTP_400_BAD_REQUEST)
         total_amount = Decimal('0.00')
         seats_to_book = []
 
@@ -159,6 +165,9 @@ class CancelBookingView(APIView):
         except Booking.DoesNotExist:
             return Response({'error': 'Booking not found or already cancelled'}, status=status.HTTP_404_NOT_FOUND )
             
+        if booking.flight.departure_time < timezone.now():
+            return Response({'error': 'Cannot cancel a completed flight.'}, status=status.HTTP_400_BAD_REQUEST)
+            
         refund_percentage = calculate_refund_percentage(booking.flight.departure_time)
         refund_amount = Decimal(booking.total_amount) * Decimal(refund_percentage) / Decimal(100)
 
@@ -194,3 +203,14 @@ class CancelBookingView(APIView):
             'refund_amount': str(refund_amount),
             'refund_status': cancellation.refund_status,
         }, status=status.HTTP_200_OK)
+
+
+class UpcomingFlightsView(generics.ListAPIView):
+    serializer_class = FlightSerializer
+
+    def get_queryset(self):
+        today = timezone.now().date()
+
+        three_months_limit = today + timedelta(days=90)
+
+        return Flight.objects.filter( departure_date__range=[today, three_months_limit]).order_by('departure_date')

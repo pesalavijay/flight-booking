@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/client';
+import DiscoveryBoard from './DiscoveryBoard'; // <-- Added import for your new component
 
 const today = new Date().toISOString().split('T')[0];
 
@@ -9,9 +10,13 @@ export default function Home() {
     const [searchForm, setSearchForm] = useState({ source: '', destination: '', date: '' });
     const [flights, setFlights] = useState([]);
     const [error, setError] = useState('');
+    const [hasSearched, setHasSearched] = useState(false); // <-- Tracks if user initiated a search
+
     const handleSearch = async (e) => {
         e.preventDefault();
         setError('');
+        setHasSearched(true); // <-- Hides the DiscoveryBoard when searching starts
+
         try {
             const response = await apiClient.get('flights/search/', { params: searchForm });
             if (response.data.flights.length === 0) {
@@ -21,8 +26,10 @@ export default function Home() {
             setFlights(response.data.flights);
         } catch (err) {
             setError('Failed to fetch flights. Please check your inputs.');
+            setFlights([]); // Clears old flights if an error occurs
         }
     };
+
     return (
         <div className="min-h-screen bg-creame px-6 py-12">
             <div className="max-w-5xl mx-auto">
@@ -47,25 +54,30 @@ export default function Home() {
                     {error && <p className="text-red-500 mt-4 font-medium text-center">{error} </p>}
                 </div>
 
+                {/* --- CONDITIONAL RENDERING LOGIC --- */}
                 <div className="space-y-6">
-                    {flights.map(flight => (
-                        <div key={flight.id} className="bg-white p-6 rounded-2xl shadow-sm flex items-center justify-between border-l-4 border-addison" >
-                            <div>
-                                <h3 className="text-xl font-bold text-gray-800"> {flight.airline} • {flight.flight_number} </h3>
-                                <p className="text-gray-600 mt-1">{flight.source} → {flight.destination} </p>
-                                <div className="flex gap-4 mt-3 text-sm font-medium text-gray-500">
-                                    <span> Departs: {new Date(flight.departure_time).toLocaleTimeString()} </span>
-                                    <span> Duration: {flight.duration} </span>
+                    {!hasSearched ? (
+                        <DiscoveryBoard />
+                    ) : flights.length > 0 ? (
+                        flights.map(flight => (
+                            <div key={flight.id} className="bg-white p-6 rounded-2xl shadow-sm flex items-center justify-between border-l-4 border-addison" >
+                                <div>
+                                    <h3 className="text-xl font-bold text-gray-800"> {flight.airline} • {flight.flight_number} </h3>
+                                    <p className="text-gray-600 mt-1">{flight.source} → {flight.destination} </p>
+                                    <div className="flex gap-4 mt-3 text-sm font-medium text-gray-500">
+                                        <span> Departs: {new Date(flight.departure_time).toLocaleTimeString()} </span>
+                                        <span> Duration: {flight.duration} </span>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-sm text-gray-500 mb-2"> {flight.available_seats} seats remaining </p>
+                                    <button onClick={() => navigate(`/flight/${flight.id}/seats`)} className="bg-persimmon text-white px-6 py-2 rounded-lg font-semibold hover:opacity-90 cursor-pointer" >
+                                    Select Seats
+                                    </button>
                                 </div>
                             </div>
-                            <div className="text-right">
-                                <p className="text-sm text-gray-500 mb-2"> {flight.available_seats} seats remaining </p>
-                                <button onClick={() => navigate(`/flight/${flight.id}/seats`)} className="bg-persimmon text-white px-6 py-2 rounded-lg font-semibold hover:opacity-90 cursor-pointer" >
-                                Select Seats
-                                </button>
-                            </div>
-                        </div>
-                    ))}
+                        ))
+                    ) : null}
                 </div>
             </div>
         </div>

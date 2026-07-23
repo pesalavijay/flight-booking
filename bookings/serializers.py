@@ -59,3 +59,6 @@ class CancellationSerializer(serializers.ModelSerializer):
         model  = Cancellation
         fields = [ 'id', 'reason', 'refund_percentage', 'refund_amount', 'refund_status', 'cancelled_at' ]
         read_only_fields = ['id', 'refund_percentage', 'refund_amount', 'refund_status', 'cancelled_at' ]
+
+
+

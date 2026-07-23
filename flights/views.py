@@ -5,6 +5,18 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticate
 from django.core.cache import cache
 from .models import Flight, Seat
 from .serializers import FlightSerializer, SeatSerializer
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
+from .models import Ticket
+from .serializers import TicketSerializer
+
+class UserDashboardView(generics.ListAPIView):
+    serializer_class = TicketSerializer
+    permission_classes = [IsAuthenticated] # Strictly enforces logged-in users only
+
+    def get_queryset(self):
+        # The database strictly filters tickets by the user ID attached to the incoming request token
+        return Ticket.objects.filter(user=self.request.user).order_by('-booking_date')
 
 # Commenting out Redis since we are on Render's free tier and it will crash the server
 # import redis
