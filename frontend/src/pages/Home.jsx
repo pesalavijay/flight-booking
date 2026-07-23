@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/client';
-import DiscoveryBoard from './DiscoveryBoard'; // <-- Added import for your new component
+import DiscoveryBoard from "../components/DiscoveryBoard"; // <-- Added import for your new component
 
+// Date calculations for the 3-month locking window
 const today = new Date().toISOString().split('T')[0];
+const maxDate = new Date(new Date().setDate(new Date().getDate() + 90)).toISOString().split('T')[0];
 
 export default function Home() {
     const navigate = useNavigate();
@@ -43,7 +45,7 @@ export default function Home() {
                         <input type="text" placeholder="Arrival City" className="flex-1 min-w-[200px] p-4 rounded-xl outline-none focus:ring-2 focus:ring-julianna"
                          onChange={(e) => setSearchForm({...searchForm, destination: e.target.value})} required />
             
-                        <input type="date" min={today} className="flex-1 min-w-[200px] p-4 rounded-xl outline-none focus:ring-2 focus:ring-julianna text-gray-700"
+                        <input type="date" min={today} max={maxDate} className="flex-1 min-w-[200px] p-4 rounded-xl outline-none focus:ring-2 focus:ring-julianna text-gray-700"
                          onChange={(e) => setSearchForm({...searchForm, date: e.target.value})} required />
             
                         <button type="submit" className="bg-julianna text-white px-8 py-4 rounded-xl font-bold hover:bg-opacity-90 transition-all whitespace-nowrap cursor-pointer" >
