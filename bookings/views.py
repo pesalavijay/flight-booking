@@ -14,6 +14,7 @@ from .serializers import BookingSerializer
 from datetime import timedelta
 from django.utils import timezone
 from rest_framework import generics
+from flights.serializers import FlightSerializer
 
 razorpay_client = razorpay.Client(
     auth=(os.getenv('RAZORPAY_KEY_ID'), os.getenv('RAZORPAY_KEY_SECRET'))
