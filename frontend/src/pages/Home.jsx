@@ -22,7 +22,7 @@ export default function Home() {
         setHasSearched(true); 
 
         try {
-            const response = await apiClient.get('flights/search/', { params: searchForm });
+            const response = await apiClient.get('api/flights/search/', { params: searchForm });
             if (response.data.flights.length === 0) {
                 setError('No flights found for this route.');
             }
