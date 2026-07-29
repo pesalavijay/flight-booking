@@ -9,25 +9,20 @@ from pathlib import Path
 from dotenv import load_dotenv
 from datetime import timedelta
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load environment variables from .env file for local development
 load_dotenv(BASE_DIR / '.env')
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fallback-key-for-dev')
 
-# ==============================================================================
-# FIX 1: FORCE DEBUG MODE TO TRUE
-# This ensures Render doesn't hide errors behind a blank 500 screen!
-# ==============================================================================
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'platter-airways-api.onrender.com',
+]
 
-
-# Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -36,12 +31,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Third-party apps
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
     
-    # Local apps
     'users',
     'flights',
     'bookings',
@@ -49,7 +42,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Required for serving static files on Render
+    'whitenoise.middleware.WhiteNoiseMiddleware',  
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -78,9 +71,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-
-# Database Configuration
-# Uses Render's DATABASE_URL if live, falls back to local SQLite if on your laptop
 DATABASES = {
     'default': dj_database_url.config(
         default='sqlite:///db.sqlite3',
@@ -89,7 +79,6 @@ DATABASES = {
 }
 
 
-# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -106,24 +95,19 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
 STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'  # The crucial line for Render deployments!
+STATIC_ROOT = BASE_DIR / 'staticfiles'  
 
-# Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Custom User Model
 AUTH_USER_MODEL = 'users.User'
 
-# Django REST Framework Settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -133,35 +117,31 @@ REST_FRAMEWORK = {
     ),
 }
 
-# JWT Settings
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=2),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }
 
-# CORS Settings (Allows your React Vercel app to talk to this backend)
 CORS_ALLOW_ALL_ORIGINS = True
 
-# ==============================================================================
-# FIX 2: VERCEL LINKS ADDED
-# We keep both the preview link and the main live link so Django never blocks them
-# ==============================================================================
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173", # we keep this for local testing
-    "https://flight-booking-4ojb-git-main-vijaypesala-s-projects.vercel.app", 
-    "https://flight-booking-4ojb.vercel.app" 
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://flight-booking-4ojb.vercel.app", # <- Add your Vercel URL here (No trailing slash at the end!)
 ]
 
-# Redis and Celery Settings
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:5173",
+#     "https://flight-booking-4ojb-git-main-vijaypesala-s-projects.vercel.app", 
+#     "https://flight-booking-4ojb.vercel.app" 
+# ]
+
 REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 CELERY_BROKER_URL = REDIS_URL
 CELERY_RESULT_BACKEND = REDIS_URL
 CELERY_TIMEZONE = 'Asia/Kolkata'
 
-# ==============================================================================
-# FIX 3: REDIS CACHE DISABLED
-# Render free tier doesn't have Redis. This was crashing the server with a 500 error!
-# ==============================================================================
+
 # CACHES = {
 #     'default': {
 #         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
