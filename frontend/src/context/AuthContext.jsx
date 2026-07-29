@@ -10,7 +10,7 @@ export const AuthProvider = ({ children }) => {
             const token = localStorage.getItem('access_token');
             if (token) {
                 try {
-                    const response = await apiClient.get('api/users/profile/');
+                    const response = await apiClient.get('users/profile/');
                     setUser(response.data);
                 } catch (err) {
                     localStorage.removeItem('access_token');
