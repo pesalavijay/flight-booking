@@ -16,7 +16,7 @@ export default function SeatMap() {
     useEffect(() => {
         const fetchSeatMap = async () => {
             try {
-                const res = await apiClient.get(`flights/${flightId}/seats/`);
+                const res = await apiClient.get(`api/flights/${flightId}/seats/`);
                 setFlight(res.data.flight);
                 setSeats(res.data.seats);
             } catch (error) {
@@ -55,7 +55,7 @@ export default function SeatMap() {
             });
         } catch (error) {
             alert(error.response?.data?.error || "One or more seats could not be secured. They might have just been taken!");
-            const res = await apiClient.get(`flights/${flightId}/seats/`);
+            const res = await apiClient.get(`api/flights/${flightId}/seats/`);
             setSeats(res.data.seats);
             setSelectedSeats([]);
         } finally {

@@ -18,7 +18,7 @@ export default function MyBookings() {
 
     const fetchBookings = async () => {
         try {
-            const res = await apiClient.get('my-bookings/'); 
+            const res = await apiClient.get('api/my-bookings/'); 
             setBookings(res.data);
         } catch (err) {
             console.error(err);
@@ -37,7 +37,7 @@ export default function MyBookings() {
         setCancelModal({ isOpen: true, bookingId });
         setRefundData(null);
         try {
-            const res = await apiClient.get(`bookings/${bookingId}/refund-preview/`);
+            const res = await apiClient.get(`api/bookings/${bookingId}/refund-preview/`);
             setRefundData(res.data);
         } catch (err) {
             console.error("Failed to fetch refund preview", err);
