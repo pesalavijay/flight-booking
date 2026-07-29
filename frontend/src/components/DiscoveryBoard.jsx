@@ -11,7 +11,7 @@ export default function DiscoveryBoard() {
     useEffect(() => {
         const fetchUpcoming = async () => {
             try {
-                const response = await apiClient.get('flights/upcoming/');
+                const response = await apiClient.get('api/flights/upcoming/');
                 setUpcomingFlights(response.data);
             } catch (error) {
                 console.error("Error fetching discovery flights", error);
